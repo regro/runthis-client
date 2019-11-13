@@ -11,38 +11,26 @@ import Json.Decode
 import Json.Decode as Decode
 import Json.Encode as Encode
 
-import LibcflibRest exposing (SearchResult, searchResultDecoder, Artifact)
-
-
 -- Types
+type alias ServerResult = {}
+
+type alias InputFlags =
+    { placeholder: String
+    , serverUrl: String
+    }
 
 type alias Model =
-    { error : Maybe Http.Error
-    , query : String
-    , page_num : Int
-    , response : Maybe SearchResult
+    { placeholder : String
+    , serverUrl : String
+    , buttonClicked : Bool
+    , response : Maybe ServerResult
+    , error : Maybe Http.Error
     }
-
-
-initialModel : Model
-initialModel =
-    { error = Nothing
-    , query = ""
-    , page_num = 1
-    , response = Nothing
-    }
-
 
 type Msg
     = NoOp
-    | SubmitForm
-    | UpdatePageNum Int
-    | SetField FormField String
-    | Response (Result Http.Error SearchResult)
-
-
-type FormField
-    = Query
+    | ButtonClicked
+    | Response (Result Http.Error ServerResult)
 
 
 -- UPDATE
@@ -54,18 +42,8 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        SubmitForm ->
-            ( { model | error = Nothing, response = Nothing }
-            , getQuery model.query model.page_num
-            )
-
-        UpdatePageNum value ->
-            ( { model | page_num = value, error = Nothing, response = Nothing }
-            , getQuery model.query value
-            )
-
-        SetField field value ->
-            ( setField field value model, Cmd.none )
+        ButtonClicked ->
+            ( { model | buttonClicked = True }, Cmd.none )
 
         Response (Ok response) ->
             ( { model | error = Nothing, response = Just response }, Cmd.none )
@@ -77,89 +55,21 @@ update msg model =
 
 -- HTTP
 
-getQuery : String -> Int -> Cmd Msg
-getQuery query page_num =
-  Http.get
-    { url = "https://libcflib.conda-forge.org/search?query=" ++ query ++ "&page_num=" ++ (String.fromInt page_num)
-    , expect = Http.expectJson Response searchResultDecoder
-    }
-
 
 -- HELPERS
-
-
-setField : FormField -> String -> Model -> Model
-setField field value model =
-    case field of
-        Query ->
-            { model | query = value, page_num = 1 }
-
-
-
-onEnter : msg -> Attribute msg
-onEnter msg =
-    keyCode
-        |> Decode.andThen
-            (\key ->
-                if key == 13 then
-                    Decode.succeed msg
-                else
-                    Decode.fail "Not enter"
-            )
-        |> on "keyup"
 
 
 
 -- VIEWS
 
-viewArtifact : Artifact -> Html Msg
-viewArtifact artifact =
-    li []
-        [ b [] [
-          a [ href ("/artifact.html?pkg=" ++ artifact.spec.pkg ++
-                    "&channel=" ++ artifact.spec.channel ++
-                    "&arch=" ++ artifact.spec.arch ++
-                    "&name=" ++ artifact.spec.name) ]
-            [ text (artifact.name ++ " v" ++ artifact.version) ]
-        ]
-        , br [] []
-        , text ("artifact: ")
-        , i [] [text (artifact.spec.path)]
-        ]
 
 
-viewPageBarLink : Int -> Html Msg
-viewPageBarLink page_num =
-    button
-        [ onClick (UpdatePageNum page_num) ]
-        [ text (String.fromInt page_num) ]
-
-
-viewPageBar : Int -> Html Msg
-viewPageBar page_num =
-    div [ class "page-bar"] (List.concat
-        [ if page_num == 1 then
-            [ text "" ]
-          else
-            List.range (Basics.max (page_num - 5) 1) (page_num - 1)
-                |> List.map viewPageBarLink
-        , [ text (String.fromInt page_num) ]
-        , List.range (page_num + 1) (Basics.max (page_num + 5) 10)
-                |> List.map viewPageBarLink
-        ])
-
-
-
-viewResponse : SearchResult -> Html Msg
+viewResponse : ServerResult -> Html Msg
 viewResponse response =
     div [ class "response-container" ]
         [ h2 [] [ text "Results" ]
         , div []
-            [ text ("searched: '" ++ response.query ++ "'") ]
-        , viewPageBar response.page_num
-        , ol [start ((response.page_num - 1) * response.page_size + 1)]
-            ((List.map viewArtifact) response.results)
-        , viewPageBar response.page_num
+            [ text "here" ]
         ]
 
 
@@ -183,13 +93,12 @@ viewError error =
 
 
 viewUtils :
-    { a | error : Maybe Http.Error, response : Maybe SearchResult }
-    -> ({ a | error : Maybe Http.Error, response : Maybe SearchResult } -> Html Msg)
+    { a | error : Maybe Http.Error, response : Maybe ServerResult }
+    -> ({ a | error : Maybe Http.Error, response : Maybe ServerResult } -> Html Msg)
     -> Html Msg
 viewUtils model viewF =
     div []
-        [ viewHeader
-        , viewF model
+        [ viewF model
         , case model.response of
             Just response ->
                 viewResponse response
@@ -202,28 +111,8 @@ viewUtils model viewF =
 
             Nothing ->
                 text ""
-        , viewFooter
         ]
 
-
-viewHeader : Html msg
-viewHeader =
-    div [ class "header" ]
-        [ h1 [] [ text ("Conda-Forge") ]
-        ]
-
-viewFooter : Html msg
-viewFooter =
-    div [ class "footer" ]
-        [ a [ href "https://conda-forge.org/" ]
-            [ text "[ homepage ] " ]
-        , a [ href "https://conda-forge.org/docs/" ]
-            [ text "[ docs ] " ]
-        , a [ href "https://twitter.com/condaforge" ]
-            [ text " [ twitter ]" ]
-        , a [ href "https://numfocus.salsalabs.org/donate-to-conda-forge/index.html" ]
-            [ text "[ donate ] " ]
-        ]
 
 view : Model -> Html Msg
 view model =
@@ -233,31 +122,38 @@ view model =
 viewForm : Model -> Html Msg
 viewForm model =
     Html.div
-        [ class "form-container"
-        , onEnter SubmitForm
-        ]
-        [ label []
-            [ text "Search: "
-            , input
-                [ type_ "text"
-                , placeholder "Query"
-                , onInput <| SetField Query
-                , value model.query
-                ]
-                []
+        [ class "runthis-container" ]
+        [ button
+            [ onClick ButtonClicked ]
+            [ text "Run This" ]
+        , br [] []
+        , div [ class "runthis-contents" ]
+            [ if model.buttonClicked then
+                iframe [ src model.serverUrl ] []
+              else
+                p [] [ text model.placeholder ]
             ]
-        , button
-            [ onClick SubmitForm ]
-            [ text "Submit" ]
         ]
+
+
+init : InputFlags -> ( Model, Cmd Msg )
+init flags =
+    ( { placeholder = flags.placeholder
+      , serverUrl = flags.serverUrl
+      , buttonClicked = False
+      , response = Nothing
+      , error = Nothing
+      }
+    , Cmd.none
+    )
 
 
 -- MAIN
 
-main : Program Decode.Value Model Msg
+main : Program InputFlags Model Msg
 main =
   Browser.element
-        { init = \_ -> ( initialModel, Cmd.none )
+        { init = init
         , view = view
         , update = update
         , subscriptions = \_ -> Sub.none

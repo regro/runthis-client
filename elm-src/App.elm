@@ -3,6 +3,7 @@ import Dict
 import String
 import Basics
 import Browser
+import Url.Builder
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -28,7 +29,6 @@ type Msg
 
 
 -- UPDATE
-
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -64,13 +64,14 @@ view model =
                      , text model.flagsError
                      ]
               else if model.started then
-                iframe [ src (model.serverUrl ++ "?setup=print"), style "width" "100%", height 400 ] []
+                iframe [ src (Url.Builder.custom
+                                (Url.Builder.CrossOrigin model.serverUrl) []
+                                [ Url.Builder.string "setup" model.setup ] Nothing)
+                       , style "width" "100%", height 400 ] []
               else
                 p [] [ text model.placeholder ]
             ]
         ]
-
-
 
 -- MAIN
 

@@ -129,7 +129,7 @@ viewForm model =
         , br [] []
         , div [ class "runthis-contents" ]
             [ if model.buttonClicked then
-                iframe [ src model.serverUrl ] []
+                iframe [ src (model.serverUrl ++ "?setup=print"), style "width" "100%", height 400 ] []
               else
                 p [] [ text model.placeholder ]
             ]

@@ -3,6 +3,7 @@ import Dict
 import String
 import Basics
 import Browser
+import Url
 import Url.Builder
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -18,6 +19,7 @@ import Json.Decode.Pipeline exposing (optional, optionalAt, required, requiredAt
 type alias Model =
     { placeholder : String
     , serverUrl : String
+    , presetup: String
     , setup: String
     , started : Bool
     , flagsError : String
@@ -38,8 +40,6 @@ update msg model =
 
         ButtonClicked ->
             ( { model | started = True }, Cmd.none )
-
-
 
 -- HTTP
 
@@ -66,7 +66,11 @@ view model =
               else if model.started then
                 iframe [ src (Url.Builder.custom
                                 (Url.Builder.CrossOrigin model.serverUrl) []
-                                [ Url.Builder.string "setup" model.setup ] Nothing)
+--                                [ Url.Builder.string "presetup" (Url.percentEncode model.presetup)
+--                                , Url.Builder.string "setup" (Url.percentEncode model.setup)
+                                [ Url.Builder.string "presetup" model.presetup
+                                , Url.Builder.string "setup" model.setup
+                                ] Nothing)
                        , style "width" "100%", height 400 ] []
               else
                 p [] [ text model.placeholder ]
@@ -80,7 +84,8 @@ modelDecoder =
     Decode.succeed Model
         |> required "placeholder" string
         |> required "serverUrl" string
-        |> required "setup" string
+        |> optional "presetup" string ""
+        |> optional "setup" string ""
         |> optional "started" bool False
         |> optional "flagsError" string ""
 
@@ -92,6 +97,7 @@ init flags =
         Err error ->
             { placeholder = ""
             , serverUrl = ""
+            , presetup = ""
             , setup = ""
             , started = False
             , flagsError = Decode.errorToString error

@@ -13,6 +13,7 @@ source:
 build:
   number: {{ build_number }}
   string: {{ environ.get('GIT_BUILD_STR', '') }}
+  skip: True  # [not linux]
   script: |
     ./elm-compile.xsh
     cp -v js/app.min.js $PREFIX/share/runthis-client.min.js

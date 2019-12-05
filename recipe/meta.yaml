@@ -1,0 +1,35 @@
+{% set name = "runthis-client" %}
+{% set version = environ.get('GIT_DESCRIBE_TAG', 'untagged')|string|replace('-','_') %}
+{% set build_number = (environ.get('GIT_DESCRIBE_NUMBER')|int + 1000)|string %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ environ.get('GIT_DESCRIBE_TAG', '') }}
+
+source:
+  git_url: {{ environ.get('FEEDSTOCK_ROOT', '..') }}
+  version: {{ version }}
+
+build:
+  number: {{ build_number }}
+  string: {{ environ.get('GIT_BUILD_STR', '') }}
+  script: |
+    ./elm-compile.xsh
+    cp -v js/app.min.js $PREFIX/share/runthis-client.min.js
+
+requirements:
+  host:
+    - xonsh
+    - elm
+    - uglify-js
+
+test:
+  commands:
+    - test -f $PREFIX/share/runthis-client.min.js
+
+# Fill in runthis-client metadata
+about:
+  home: https://github.com/regro/runthis-client
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE

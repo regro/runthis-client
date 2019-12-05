@@ -39,4 +39,6 @@ def ghrelease_elm_compiled():
     return [target_js, target_min_js]
 
 
-$GHRELEASE_ASSETS = $GHRELEASE_ASSETS + (ghreleas_elm_compiled,)
+from rever.activities.ghrelease import git_archive_asset
+
+$GHRELEASE_ASSETS = (git_archive_asset, ghrelease_elm_compiled,)

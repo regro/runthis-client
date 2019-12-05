@@ -35,7 +35,7 @@ def ghrelease_elm_compiled():
     target_js = eval_version("$REVER_DIR/runthis-client-$VERSION.js")
     target_min_js = eval_version("$REVER_DIR/runthis-client-$VERSION.min.js")
     ![cp js/app.js @(target_js)]
-    ![cp js/app.js @(target_min_js)]
+    ![cp js/app.min.js @(target_min_js)]
     return [target_js, target_min_js]
 
 

@@ -8,6 +8,8 @@ import Url.Builder
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Html.Parser
+import Html.Parser.Util
 import Http
 import Json.Decode exposing (string, field, maybe, bool)
 import Json.Decode as Decode
@@ -46,6 +48,14 @@ update msg model =
 
 -- HELPERS
 
+textHtml : String -> List (Html.Html msg)
+textHtml t =
+    case Html.Parser.run t of
+        Ok nodes ->
+            Html.Parser.Util.toVirtualDom nodes
+
+        Err _ ->
+            []
 
 
 -- VIEWS
@@ -73,7 +83,7 @@ view model =
                                 ] Nothing)
                        , style "width" "100%", height 400 ] []
               else
-                p [] [ text model.placeholder ]
+                p [] (textHtml model.placeholder)
             ]
         ]
 

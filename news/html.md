@@ -1,0 +1,23 @@
+**Added:**
+
+* Placeholder text is now rendered as HTML.
+
+**Changed:**
+
+* <news item>
+
+**Deprecated:**
+
+* <news item>
+
+**Removed:**
+
+* <news item>
+
+**Fixed:**
+
+* <news item>
+
+**Security:**
+
+* <news item>

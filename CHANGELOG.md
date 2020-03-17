@@ -4,7 +4,15 @@ runthis-client Change Log
 
 
 
+
 <!-- current developments -->
+
+## v0.0.3
+**Authors:**
+
+* Anthony Scopatz
+
+
 
 ## v0.0.2
 **Added:**

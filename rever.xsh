@@ -32,7 +32,7 @@ $CHANGELOG_HEADER = """
 @activity
 def elm_compile():
     with ${...}.swap(RAISE_SUBPROC_ERROR=True):
-        ![./elm-compile.xsh]
+        ![xonsh elm-compile.xsh]
 
 elm_compile.checker(elm_compile)
 

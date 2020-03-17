@@ -31,8 +31,8 @@ for source in SOURCES:
     if HAVE_UGLIFY:
         print_color('Minifying {YELLOW}' + js_target + '{NO_COLOR} -> {GREEN}' +
                     min_target + '{NO_COLOR}')
-        ![uglifyjs @(js_target) --compress @(UGLIFY_FLAGS) |
-          uglifyjs --mangle --output @(min_target)]
+        ![uglifyjs @(js_target) --compress @(UGLIFY_FLAGS) --output @(min_target)]
+        ![uglifyjs @(min_target) --mangle --output @(min_target)]
         new_files.append(min_target)
     ![ls -l @(new_files)]
 

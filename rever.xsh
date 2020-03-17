@@ -1,7 +1,10 @@
+from rever.activity import activity
+
 $PROJECT = $GITHUB_REPO = 'runthis-client'
 $GITHUB_ORG = 'regro'
 
 $ACTIVITIES = [
+    'elm_compile',
     'authors',
     # nothing to version bump yet
     #'version_bump',
@@ -26,17 +29,25 @@ $CHANGELOG_HEADER = """
 ## v$VERSION
 """
 
-
-def ghrelease_elm_compiled():
-    from rever.tools import eval_version
-
+@activity
+def elm_compile():
     with ${...}.swap(RAISE_SUBPROC_ERROR=True):
         ![./elm-compile.xsh]
+
+elm_compile.checker(elm_compile)
+
+
+def ghrelease_elm_compiled():
+    from xonsh.lib.os import indir
+    from rever.tools import eval_version
+
     target_js = eval_version("$REVER_DIR/runthis-client-$VERSION.js")
     target_min_js = eval_version("$REVER_DIR/runthis-client-$VERSION.min.js")
     ![cp js/app.js @(target_js)]
     ![cp js/app.min.js @(target_min_js)]
-    return [target_js, target_min_js]
+    with indir($REVER_DIR):
+        ![sha256sum f"runthis-client-$VERSION.js" f"runthis-client-$VERSION.min.js" > sha256.txt]
+    return [target_js, target_min_js, "sha256.txt"]
 
 
 from rever.activities.ghrelease import git_archive_asset

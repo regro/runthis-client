@@ -47,7 +47,7 @@ def ghrelease_elm_compiled():
     ![cp js/app.min.js @(target_min_js)]
     with indir($REVER_DIR):
         ![sha256sum f"runthis-client-$VERSION.js" f"runthis-client-$VERSION.min.js" > sha256.txt]
-    return [target_js, target_min_js, "sha256.txt"]
+    return [target_js, target_min_js, $REVER_DIR + "/sha256.txt"]
 
 
 from rever.activities.ghrelease import git_archive_asset
